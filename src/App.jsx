@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { FaEdit, FaTrash } from "react-icons/fa";
+import { message, Modal } from "antd";
 
 function App() {
   const [expenses, setExpenses] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -15,7 +19,9 @@ function App() {
   }, []);
 
   const fetchExpenses = async () => {
-    const res = await axios.get("https://expensive-bend.onrender.com/api/expenses");
+    const res = await axios.get(
+      "https://expensive-bend.onrender.com/api/expenses"
+    );
     setExpenses(res.data);
   };
 
@@ -28,9 +34,61 @@ function App() {
       amount: parseFloat(form.amount),
       date: form.date, // include date here
     });
+    message.success("Expense added successfully!");
 
     setForm({ title: "", description: "", amount: "", date: "" });
 
+    fetchExpenses();
+  };
+
+  const handleDelete = async (id) => {
+    Modal.confirm({
+      title: "Are you sure?",
+      content: "Do you really want to delete this expense?",
+      okText: "Yes, delete it",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          await axios.delete(
+            `https://expensive-bend.onrender.com/api/expenses/${id}`
+          );
+          message.success("Expense deleted successfully!");
+          fetchExpenses();
+        } catch (error) {
+          message.error("Failed to delete expense.");
+        }
+      },
+    });
+  };
+
+  const handleEdit = (exp) => {
+    setForm({
+      title: exp.title,
+      description: exp.description,
+      amount: exp.amount,
+      date: new Date(exp.date).toISOString().split("T")[0], // format YYYY-MM-DD
+    });
+    setEditingId(exp._id);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!form.title || !form.amount) return;
+
+    await axios.patch(
+      `https://expensive-bend.onrender.com/api/expenses/${editingId}`,
+      {
+        title: form.title,
+        description: form.description,
+        amount: parseFloat(form.amount),
+        date: form.date,
+      }
+    );
+    message.success("Expense updated successfully!");
+
+    setForm({ title: "", description: "", amount: "", date: "" });
+    setEditingId(null);
     fetchExpenses();
   };
 
@@ -43,7 +101,10 @@ function App() {
           Monthly Expense Tracker
         </h2>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
+        <form
+          onSubmit={editingId ? handleUpdate : handleSubmit}
+          className="flex flex-col gap-4 mb-6"
+        >
           <input
             type="date"
             value={form.date}
@@ -75,7 +136,7 @@ function App() {
             type="submit"
             className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 text-sm sm:text-base"
           >
-            Add Expense
+            {editingId ? "Update Expense" : "Add Expense"}
           </button>
         </form>
 
@@ -88,6 +149,7 @@ function App() {
                 <th className="p-2 border">Title</th>
                 <th className="p-2 border">Description</th>
                 <th className="p-2 border">Amount (₹)</th>
+                <th className="p-2 border text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -97,15 +159,28 @@ function App() {
                     {(() => {
                       const d = new Date(exp.date);
                       const day = String(d.getDate()).padStart(2, "0");
-                      const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+                      const month = String(d.getMonth() + 1).padStart(2, "0");
                       const year = d.getFullYear();
                       return `${day}/${month}/${year}`;
                     })()}
                   </td>
-
                   <td className="p-2 border">{exp.title}</td>
                   <td className="p-2 border">{exp.description}</td>
                   <td className="p-2 border font-semibold">₹{exp.amount}</td>
+                  <td className="p-2 border text-center space-x-2">
+                    <button
+                      onClick={() => handleEdit(exp)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(exp._id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
