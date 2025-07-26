@@ -19,26 +19,34 @@ function App() {
   }, []);
 
   const fetchExpenses = async () => {
-    const res = await axios.get(
-      "https://expensive-bend.onrender.com/api/expenses"
-    );
-    setExpenses(res.data);
+    try {
+      const res = await axios.get(
+        "https://expensive-bend.onrender.com/api/expenses"
+      );
+      setExpenses(res.data);
+    } catch (err) {
+      message.error("Failed to fetch expenses.");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title || !form.amount) return;
-    await axios.post("https://expensive-bend.onrender.com/api/expenses", {
-      title: form.title,
-      description: form.description,
-      amount: parseFloat(form.amount),
-      date: form.date, // include date here
-    });
-    message.success("Expense added successfully!");
 
-    setForm({ title: "", description: "", amount: "", date: "" });
+    try {
+      await axios.post("https://expensive-bend.onrender.com/api/expenses", {
+        title: form.title,
+        description: form.description,
+        amount: parseFloat(form.amount),
+        date: form.date,
+      });
 
-    fetchExpenses();
+      message.success("Expense added successfully!");
+      setForm({ title: "", description: "", amount: "", date: "" });
+      fetchExpenses();
+    } catch (err) {
+      message.error("Failed to add expense.");
+    }
   };
 
   const handleDelete = async (id) => {
@@ -67,7 +75,7 @@ function App() {
       title: exp.title,
       description: exp.description,
       amount: exp.amount,
-      date: new Date(exp.date).toISOString().split("T")[0], // format YYYY-MM-DD
+      date: new Date(exp.date).toISOString().split("T")[0],
     });
     setEditingId(exp._id);
   };
@@ -76,20 +84,24 @@ function App() {
     e.preventDefault();
     if (!form.title || !form.amount) return;
 
-    await axios.patch(
-      `https://expensive-bend.onrender.com/api/expenses/${editingId}`,
-      {
-        title: form.title,
-        description: form.description,
-        amount: parseFloat(form.amount),
-        date: form.date,
-      }
-    );
-    message.success("Expense updated successfully!");
+    try {
+      await axios.patch(
+        `https://expensive-bend.onrender.com/api/expenses/${editingId}`,
+        {
+          title: form.title,
+          description: form.description,
+          amount: parseFloat(form.amount),
+          date: form.date,
+        }
+      );
 
-    setForm({ title: "", description: "", amount: "", date: "" });
-    setEditingId(null);
-    fetchExpenses();
+      message.success("Expense updated successfully!");
+      setForm({ title: "", description: "", amount: "", date: "" });
+      setEditingId(null);
+      fetchExpenses();
+    } catch (err) {
+      message.error("Failed to update expense.");
+    }
   };
 
   const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
