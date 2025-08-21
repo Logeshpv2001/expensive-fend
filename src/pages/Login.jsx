@@ -4,6 +4,7 @@ import AxiosInstance from "../utilities/AxiosInstance";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock } from "lucide-react"; // icons
+import { isTokenValid } from "../utilities/authHelpers";
 
 function Login() {
   const navigate = useNavigate();
@@ -20,6 +21,12 @@ function Login() {
       message.error(err.response?.data?.error || "Login failed");
     }
   };
+
+  useEffect(() => {
+    if (isTokenValid()) {
+      navigate("/expenses"); // already logged in, go to expenses
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-indigo-400 via-blue-300 to-green-300 px-4">

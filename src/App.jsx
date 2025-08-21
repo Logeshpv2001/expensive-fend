@@ -4,6 +4,8 @@ import Expensive from "./Expensive";
 import InstallPWA from "./InstallPWA";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute"; // 👈 add this
+import { isTokenValid } from "./utilities/authHelpers";
 
 const App = () => {
   return (
@@ -11,8 +13,21 @@ const App = () => {
       <InstallPWA />
       <Routes>
         <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/expenses" element={<Expensive />} />
+        <Route
+  path="*"
+  element={isTokenValid() ? <Expensive /> : <Login />} // 👈 fixed fallback
+/>
+
+        {/* Protected Route */}
+        <Route
+          path="/expenses"
+          element={
+            <ProtectedRoute>
+              <Expensive />
+            </ProtectedRoute>
+          }
+        />
+
         {/* fallback route */}
         <Route path="*" element={<Login />} />
       </Routes>

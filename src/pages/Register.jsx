@@ -4,6 +4,7 @@ import AxiosInstance from "../utilities/AxiosInstance";
 import { message } from "antd";
 import { motion } from "framer-motion"; // for smooth animations
 import { User, Mail, Lock } from "lucide-react"; // icons
+import { isTokenValid } from "../utilities/authHelpers";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -19,6 +20,12 @@ const Register = () => {
       message.error(err.response?.data?.error || "Registration failed");
     }
   };
+
+  useEffect(() => {
+    if (isTokenValid()) {
+      navigate("/expenses"); // already logged in, go to expenses
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-indigo-400 to-purple-500 px-4">
