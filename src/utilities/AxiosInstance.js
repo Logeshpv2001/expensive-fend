@@ -16,9 +16,9 @@
 import axios from "axios";
 
 const AxiosInstance = axios.create({
-  // baseURL: "https://expensive-bend.onrender.com/api", // common base URL
+  baseURL: "https://expensive-bend.onrender.com/api", // common base URL
 
-  baseURL: "https://expensive-bend-production.up.railway.app/api",
+  // baseURL: "https://expensive-bend-production.up.railway.app/api",
 
   // baseURL: "http://localhost:5000/api",
   headers: {
